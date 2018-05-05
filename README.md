@@ -53,4 +53,7 @@ This RFCN framework consists of FIVE parts:
 
 To make sure the framework work normally, we have trained the model 240 epochs with DeepFashion dataset. And the detection result might useful:
 
-![result_1](ReadmeImages/result_1.jpg)&nbsp;![result_2](ReadmeImages/result_2.jpg)
+![result_1](ReadmeImages/result_1.jpg =100)&nbsp;![result_2](ReadmeImages/result_2.jpg = 100)
+
+# TODO
+
