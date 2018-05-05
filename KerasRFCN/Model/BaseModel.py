@@ -14,9 +14,9 @@ import re
 import keras
 import tensorflow as tf
 import datetime
-from Data_generator import data_generator
+from KerasRFCN.Data_generator import data_generator
 import os
-import Utils
+import KerasRFCN.Utils
 import numpy as np
 
 class BaseModel(object):

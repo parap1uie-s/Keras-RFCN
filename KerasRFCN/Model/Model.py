@@ -10,14 +10,15 @@ This is Main class of RFCN Model
 Contain the model's framework and call the backbone
 '''
 
-from Model.ResNet import ResNet
-from Model.ResNet_dilated import ResNet_dilated
-from Model.BaseModel import BaseModel
+from KerasRFCN.Model.ResNet import ResNet
+from KerasRFCN.Model.ResNet_dilated import ResNet_dilated
+from KerasRFCN.Model.BaseModel import BaseModel
+import KerasRFCN.Utils
+import KerasRFCN.Losses
+
 import keras.layers as KL
 import keras.engine as KE
 import tensorflow as tf
-import Utils
-import Losses
 import numpy as np
 import keras
 import keras.backend as K
@@ -88,7 +89,7 @@ class RFCN_Model(BaseModel):
 
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
-        self.anchors = Utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+        self.anchors = KerasRFCN.Utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                               config.RPN_ANCHOR_RATIOS,
                                               config.BACKBONE_SHAPES,
                                               config.BACKBONE_STRIDES,
@@ -140,13 +141,13 @@ class RFCN_Model(BaseModel):
             regr_vote = VotePooling(config.TRAIN_ROIS_PER_IMAGE, 4, config.K, config.POOL_SIZE, config.BATCH_SIZE, config.IMAGE_SHAPE, name="regr_vote")([rois] + ScoreMaps_regr)
             regr_output = KL.TimeDistributed(KL.Activation('linear'),name="regr_output")(regr_vote)
 
-            rpn_class_loss = KL.Lambda(lambda x: Losses.rpn_class_loss_graph(*x), name="rpn_class_loss")(
+            rpn_class_loss = KL.Lambda(lambda x: KerasRFCN.Losses.rpn_class_loss_graph(*x), name="rpn_class_loss")(
                 [input_rpn_match, rpn_class_logits])
-            rpn_bbox_loss = KL.Lambda(lambda x: Losses.rpn_bbox_loss_graph(config, *x), name="rpn_bbox_loss")(
+            rpn_bbox_loss = KL.Lambda(lambda x: KerasRFCN.Losses.rpn_bbox_loss_graph(config, *x), name="rpn_bbox_loss")(
                 [input_rpn_bbox, input_rpn_match, rpn_bbox])
-            class_loss = KL.Lambda(lambda x: Losses.mrcnn_class_loss_graph(*x), name="mrcnn_class_loss")(
+            class_loss = KL.Lambda(lambda x: KerasRFCN.Losses.mrcnn_class_loss_graph(*x), name="mrcnn_class_loss")(
                 [target_class_ids, classify_vote, active_class_ids])
-            bbox_loss = KL.Lambda(lambda x: Losses.mrcnn_bbox_loss_graph(*x), name="mrcnn_bbox_loss")(
+            bbox_loss = KL.Lambda(lambda x: KerasRFCN.Losses.mrcnn_bbox_loss_graph(*x), name="mrcnn_bbox_loss")(
                 [target_bbox, target_class_ids, regr_output])
 
             inputs = [input_image, input_image_meta,
@@ -327,17 +328,17 @@ class ProposalLayer(KE.Layer):
         pre_nms_limit = min(6000, self.anchors.shape[0])
         ix = tf.nn.top_k(scores, pre_nms_limit, sorted=True,
                          name="top_anchors").indices
-        scores = Utils.batch_slice([scores, ix], lambda x, y: tf.gather(x, y),
+        scores = KerasRFCN.Utils.batch_slice([scores, ix], lambda x, y: tf.gather(x, y),
                                    self.config.IMAGES_PER_GPU)
-        deltas = Utils.batch_slice([deltas, ix], lambda x, y: tf.gather(x, y),
+        deltas = KerasRFCN.Utils.batch_slice([deltas, ix], lambda x, y: tf.gather(x, y),
                                    self.config.IMAGES_PER_GPU)
-        anchors = Utils.batch_slice(ix, lambda x: tf.gather(anchors, x),
+        anchors = KerasRFCN.Utils.batch_slice(ix, lambda x: tf.gather(anchors, x),
                                     self.config.IMAGES_PER_GPU,
                                     names=["pre_nms_anchors"])
 
         # Apply deltas to anchors to get refined anchors.
         # [batch, N, (y1, x1, y2, x2)]
-        boxes = Utils.batch_slice([anchors, deltas],
+        boxes = KerasRFCN.Utils.batch_slice([anchors, deltas],
                                   lambda x, y: apply_box_deltas_graph(x, y),
                                   self.config.IMAGES_PER_GPU,
                                   names=["refined_anchors"])
@@ -345,7 +346,7 @@ class ProposalLayer(KE.Layer):
         # Clip to image boundaries. [batch, N, (y1, x1, y2, x2)]
         height, width = self.config.IMAGE_SHAPE[:2]
         window = np.array([0, 0, height, width]).astype(np.float32)
-        boxes = Utils.batch_slice(boxes,
+        boxes = KerasRFCN.Utils.batch_slice(boxes,
                                   lambda x: clip_boxes_graph(x, window),
                                   self.config.IMAGES_PER_GPU,
                                   names=["refined_anchors_clipped"])
@@ -367,7 +368,7 @@ class ProposalLayer(KE.Layer):
             padding = tf.maximum(self.proposal_count - tf.shape(proposals)[0], 0)
             proposals = tf.pad(proposals, [(0, padding), (0, 0)])
             return proposals
-        proposals = Utils.batch_slice([normalized_boxes, scores], nms,
+        proposals = KerasRFCN.Utils.batch_slice([normalized_boxes, scores], nms,
                                       self.config.IMAGES_PER_GPU)
         return proposals
 
@@ -486,7 +487,7 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, config):
     roi_gt_class_ids = tf.gather(gt_class_ids, roi_gt_box_assignment)
 
     # Compute bbox refinement for positive ROIs
-    deltas = Utils.box_refinement_graph(positive_rois, roi_gt_boxes)
+    deltas = KerasRFCN.Utils.box_refinement_graph(positive_rois, roi_gt_boxes)
     deltas /= config.BBOX_STD_DEV
 
     # Append negative ROIs and pad bbox deltas and masks that
@@ -545,7 +546,7 @@ class DetectionTargetLayer(KE.Layer):
         # Slice the batch and run a graph for each slice
         # TODO: Rename target_bbox to target_deltas for clarity
         names = ["rois", "target_class_ids", "target_bbox"]
-        outputs = Utils.batch_slice(
+        outputs = KerasRFCN.Utils.batch_slice(
             [proposals, gt_class_ids, gt_boxes],
             lambda w, x, y: detection_targets_graph(
                 w, x, y, self.config),
@@ -709,7 +710,7 @@ def refine_detections(rois, probs, deltas, window, config):
     deltas_specific = deltas[np.arange(deltas.shape[0])]
     # Apply bounding box deltas
     # Shape: [boxes, (y1, x1, y2, x2)] in normalized coordinates
-    refined_rois = Utils.apply_box_deltas(
+    refined_rois = KerasRFCN.Utils.apply_box_deltas(
         rois, deltas_specific * config.BBOX_STD_DEV)
     # Convert coordiates to image domain
     # TODO: better to keep them normalized until later
@@ -737,7 +738,7 @@ def refine_detections(rois, probs, deltas, window, config):
         # Pick detections of this class
         ixs = np.where(pre_nms_class_ids == class_id)[0]
         # Apply NMS
-        class_keep = Utils.non_max_suppression(
+        class_keep = KerasRFCN.Utils.non_max_suppression(
             pre_nms_rois[ixs], pre_nms_scores[ixs],
             config.DETECTION_NMS_THRESHOLD)
         # Map indicies

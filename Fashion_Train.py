@@ -12,7 +12,7 @@ http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html
 
 from KerasRFCN.Model.Model import RFCN_Model
 from KerasRFCN.Config import Config
-import KerasRFCN.Utils 
+from KerasRFCN.Utils import Dataset
 import os
 import pickle
 import numpy as np
@@ -63,7 +63,7 @@ class RFCNNConfig(Config):
 #  Dataset
 ############################################################
 
-class FashionDataset(Utils.Dataset):
+class FashionDataset(Dataset):
     # count - int, images in the dataset
     def initDB(self, count, start = 0):
         self.start = start
@@ -119,9 +119,13 @@ if __name__ == '__main__':
 
     # This is a hack, bacause the pre-train weights are not fit with dilated ResNet
     model.keras_model.load_weights("resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5", by_name=True, skip_mismatch=True)
-    model_path = model.find_last()[1]
-    if model_path is not None:
-        model.load_weights(model_path, by_name=True)
+    
+    try:
+        model_path = model.find_last()[1]
+        if model_path is not None:
+            model.load_weights(model_path, by_name=True)
+    except Exception as e:
+        print("No checkpoint founded")
         
     # *** This training schedule is an example. Update to your needs ***
 
@@ -132,7 +136,7 @@ if __name__ == '__main__':
                 layers='heads')
 
     # Training - Stage 2
-    Finetune layers from ResNet stage 4 and up
+    # Finetune layers from ResNet stage 4 and up
     print("Fine tune Resnet stage 4 and up")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
@@ -152,5 +156,5 @@ if __name__ == '__main__':
     print("Fine tune all layers")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=120,
+                epochs=240,
                 layers='all')
