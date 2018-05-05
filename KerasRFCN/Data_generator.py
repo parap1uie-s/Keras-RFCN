@@ -29,12 +29,12 @@ def load_image_gt(dataset, config, image_id, augment=False):
     # bbox: [num_instances, (y1, x1, y2, x2)]
     bboxes, class_ids = dataset.load_bbox(image_id)
     shape = image.shape
-    image, window, scale, padding = Utils.resize_image(
+    image, window, scale, padding = KerasRFCN.Utils.resize_image(
         image,
         min_dim=config.IMAGE_MIN_DIM,
         max_dim=config.IMAGE_MAX_DIM,
         padding=config.IMAGE_PADDING)
-    bboxes = Utils.resize_bbox(bboxes, scale, padding)
+    bboxes = KerasRFCN.Utils.resize_bbox(bboxes, scale, padding)
     # img_h, img_w, img_c = image.shape
 
     # Random horizontal flips.
@@ -100,7 +100,7 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, config):
     overlaps = np.zeros((rpn_rois.shape[0], gt_boxes.shape[0]))
     for i in range(overlaps.shape[1]):
         gt = gt_boxes[i]
-        overlaps[:, i] = Utils.compute_iou(
+        overlaps[:, i] = KerasRFCN.Utils.compute_iou(
             gt, rpn_rois, gt_box_area[i], rpn_roi_area)
 
     # Assign ROIs to GT boxes
@@ -172,7 +172,7 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, config):
     bboxes = np.zeros((config.TRAIN_ROIS_PER_IMAGE,
                        config.NUM_CLASSES, 4), dtype=np.float32)
     pos_ids = np.where(roi_gt_class_ids > 0)[0]
-    bboxes[pos_ids, roi_gt_class_ids[pos_ids]] = Utils.box_refinement(
+    bboxes[pos_ids, roi_gt_class_ids[pos_ids]] = KerasRFCN.Utils.box_refinement(
         rois[pos_ids], roi_gt_boxes[pos_ids, :4])
     # Normalize bbox refinments
     bboxes /= config.BBOX_STD_DEV
@@ -209,7 +209,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         gt_class_ids = gt_class_ids[non_crowd_ix]
         gt_boxes = gt_boxes[non_crowd_ix]
         # Compute overlaps with crowd boxes [anchors, crowds]
-        crowd_overlaps = Utils.compute_overlaps(anchors, crowd_boxes)
+        crowd_overlaps = KerasRFCN.Utils.compute_overlaps(anchors, crowd_boxes)
         crowd_iou_max = np.amax(crowd_overlaps, axis=1)
         no_crowd_bool = (crowd_iou_max < 0.001)
     else:
@@ -217,7 +217,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         no_crowd_bool = np.ones([anchors.shape[0]], dtype=bool)
 
     # Compute overlaps [num_anchors, num_gt_boxes]
-    overlaps = Utils.compute_overlaps(anchors, gt_boxes)
+    overlaps = KerasRFCN.Utils.compute_overlaps(anchors, gt_boxes)
 
     # Match anchors to GT Boxes
     # If an anchor overlaps a GT box with IoU >= 0.7 then it's positive.
@@ -404,7 +404,7 @@ def data_generator(dataset, config, shuffle=True, augment=True, random_rois=0,
 
     # Anchors
     # [anchor_count, (y1, x1, y2, x2)]
-    anchors = Utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+    anchors = KerasRFCN.Utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                              config.RPN_ANCHOR_RATIOS,
                                              config.BACKBONE_SHAPES,
                                              config.BACKBONE_STRIDES,

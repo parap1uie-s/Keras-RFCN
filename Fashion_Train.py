@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     # This is a hack, bacause the pre-train weights are not fit with dilated ResNet
     model.keras_model.load_weights("resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5", by_name=True, skip_mismatch=True)
-    
+
     try:
         model_path = model.find_last()[1]
         if model_path is not None:
