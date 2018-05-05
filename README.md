@@ -7,7 +7,7 @@ The repository includes:
 
 * Source code of RFCN built on FPN and ResNet50/101.
 * Training code for [DeepFashion Dataset](http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) with 46 clothes classes.
-* Pre-trained weights for [DeepFashion Dataset](http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) - Uploading
+* Pre-trained weights for [DeepFashion Dataset](http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html) - See release
 * Example of training on your own dataset&nbsp;-&nbsp;see Fashion_Train.py and Fashion_Test.py
 
 
