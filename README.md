@@ -53,8 +53,12 @@ This RFCN framework consists of FIVE parts:
 
 To make sure the framework work normally, we have trained the model 240 epochs with DeepFashion dataset. And the detection result might useful:
 
-<img src="ReadmeImages/result_1.jpg" width="150">
-<img src="ReadmeImages/result_2.jpg" width="150">
+<figure class="half">
+	<img src="ReadmeImages/result_1.jpg" width="300">
+	<img src="ReadmeImages/result_2.jpg" width="300">
+</figure>
 
 # TODO
 
+* Train on MSCOCO
+* Complete the load_weights function of model.
