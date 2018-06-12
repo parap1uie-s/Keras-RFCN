@@ -257,7 +257,7 @@ class BaseModel(object):
                                         histogram_freq=0, write_graph=True, write_images=False),
             keras.callbacks.ModelCheckpoint(self.checkpoint_path,
                                             verbose=0, save_weights_only=True, save_best_only=True),
-            keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=1, mode='auto', min_delta=0.01, min_lr=0)
+            keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=10, verbose=1, mode='auto', min_delta=0.001, min_lr=0)
         ]
 
         # Train
@@ -343,14 +343,14 @@ class BaseModel(object):
         for image in images:
             # Resize image to fit the model expected size
             # TODO: move resizing to mold_image()
-            molded_image, window, scale, padding = Utils.resize_image(
+            molded_image, window, scale, padding = KerasRFCN.Utils.resize_image(
                 image,
                 min_dim=self.config.IMAGE_MIN_DIM,
                 max_dim=self.config.IMAGE_MAX_DIM,
                 padding=self.config.IMAGE_PADDING)
-            molded_image = Utils.mold_image(molded_image, self.config)
+            molded_image = KerasRFCN.Utils.mold_image(molded_image, self.config)
             # Build image_meta
-            image_meta = Utils.compose_image_meta(
+            image_meta = KerasRFCN.Utils.compose_image_meta(
                 0, image.shape, window,
                 np.zeros([self.config.NUM_CLASSES], dtype=np.int32))
             # Append
