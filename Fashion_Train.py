@@ -51,12 +51,12 @@ class RFCNNConfig(Config):
     TRAIN_ROIS_PER_IMAGE = 200
 
     # Use a small epoch since the data is simple
-    STEPS_PER_EPOCH = 100
+    STEPS_PER_EPOCH = 1000
 
     # use small validation steps since the epoch is small
-    VALIDATION_STEPS = 50
+    VALIDATION_STEPS = 200
 
-    RPN_NMS_THRESHOLD = 0.8
+    RPN_NMS_THRESHOLD = 0.6
     POOL_SIZE = 7
 
 ############################################################
