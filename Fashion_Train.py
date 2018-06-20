@@ -40,8 +40,8 @@ class RFCNNConfig(Config):
     NUM_CLASSES = C
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
-    IMAGE_MIN_DIM = 300
-    IMAGE_MAX_DIM = 512
+    IMAGE_MIN_DIM = 640
+    IMAGE_MAX_DIM = 768
 
     # Use smaller anchors because our image and objects are small
     RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)  # anchor side in pixels
