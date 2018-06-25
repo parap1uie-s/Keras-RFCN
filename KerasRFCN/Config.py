@@ -52,6 +52,8 @@ class Config(object):
 
     # The strides of each layer of the FPN Pyramid. These values
     # are based on a Resnet101 backbone.
+    # Use same strides on stage 4-6 if use dilated resnet of DetNet
+    # Like BACKBONE_STRIDES = [4, 8, 16, 16, 16]
     BACKBONE_STRIDES = [4, 8, 16, 32, 64]
 
     # Number of classification classes (including background)
