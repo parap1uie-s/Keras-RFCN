@@ -30,6 +30,10 @@ class RFCNNConfig(Config):
     # Give the configuration a recognizable name
     NAME = "Fashion"
 
+    # Backbone model
+    # choose one from ['resnet50', 'resnet101', 'resnet50_dilated', 'resnet101_dilated']
+    BACKBONE = "resnet101"
+
     # Train on 1 GPU and 8 images per GPU. We can put multiple images on each
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
     GPU_COUNT = 1
@@ -45,7 +49,9 @@ class RFCNNConfig(Config):
 
     # Use smaller anchors because our image and objects are small
     RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)  # anchor side in pixels
-    BACKBONE_STRIDES = [4, 8, 16, 16, 16]
+    # Use same strides on stage 4-6 if use dilated resnet of DetNet
+    # Like BACKBONE_STRIDES = [4, 8, 16, 16, 16]
+    BACKBONE_STRIDES = [4, 8, 16, 32, 64]
     # Reduce training ROIs per image because the images are small and have
     # few objects. Aim to allow ROI sampling to pick 33% positive ROIs.
     TRAIN_ROIS_PER_IMAGE = 200

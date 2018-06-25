@@ -33,6 +33,8 @@ class RFCN_Model(BaseModel):
         model_dir: Directory to save training logs and trained weights
         """
         assert mode in ['training', 'inference']
+        assert config.BACKBONE in ['resnet50', 'resnet101', 'resnet50_dilated', 'resnet101_dilated']
+
         self.mode = mode
         self.config = config
         self.model_dir = model_dir
@@ -71,7 +73,10 @@ class RFCN_Model(BaseModel):
             image_scale = K.cast(K.stack([h, w, h, w], axis=0), tf.float32)
             gt_boxes = KL.Lambda(lambda x: x / image_scale)(input_gt_boxes)
 
-        P2, P3, P4, P5, P6 = ResNet_dilated(input_image, architecture='resnet50').output_layers
+        if self.architecture in ['resnet50', 'resnet101']:
+            P2, P3, P4, P5, P6 = ResNet(input_image, architecture=config.BACKBONE).output_layers
+        else:
+            P2, P3, P4, P5, P6 = ResNet_dilated(input_image, architecture=config.BACKBONE).output_layers
 
         # Note that P6 is used in RPN, but not in the classifier heads.
         rpn_feature_maps = [P2, P3, P4, P5, P6]

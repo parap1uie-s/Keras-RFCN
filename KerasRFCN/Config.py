@@ -23,6 +23,10 @@ class Config(object):
     # experiment is running.
     NAME = None  # Override in sub-classes
 
+    # Backbone model
+    # choose one from ['resnet50', 'resnet101', 'resnet50_dilated', 'resnet101_dilated']
+    BACKBONE = "resnet101"
+
     # NUMBER OF GPUs to use. For CPU training, use 1
     GPU_COUNT = 1
 
