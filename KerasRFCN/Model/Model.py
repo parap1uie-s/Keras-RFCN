@@ -73,7 +73,7 @@ class RFCN_Model(BaseModel):
             image_scale = K.cast(K.stack([h, w, h, w], axis=0), tf.float32)
             gt_boxes = KL.Lambda(lambda x: x / image_scale)(input_gt_boxes)
 
-        if self.architecture in ['resnet50', 'resnet101']:
+        if config.BACKBONE in ['resnet50', 'resnet101']:
             P2, P3, P4, P5, P6 = ResNet(input_image, architecture=config.BACKBONE).output_layers
         else:
             P2, P3, P4, P5, P6 = ResNet_dilated(input_image, architecture=config.BACKBONE).output_layers
@@ -700,11 +700,11 @@ def clip_to_window(window, boxes):
 def refine_detections_graph(rois, probs, deltas, window, config):
     """Refine classified proposals and filter overlaps and return final
     detections.
-
+    
     Inputs:
         rois: [N, (y1, x1, y2, x2)] in normalized coordinates
         probs: [N, num_classes]. Class probabilities.
-        deltas: [N, num_classes, (dy, dx, log(dh), log(dw))]. Class-specific
+        deltas: [N, (dy, dx, log(dh), log(dw))]. Class-specific
                 bounding box deltas.
         window: (y1, x1, y2, x2) in image coordinates. The part of the image
             that contains the image excluding the padding.
@@ -712,17 +712,18 @@ def refine_detections_graph(rois, probs, deltas, window, config):
     Returns detections shaped: [N, (y1, x1, y2, x2, class_id, score)] where
         coordinates are in image domain.
     """
+
     # Class IDs per ROI
     class_ids = tf.argmax(probs, axis=1, output_type=tf.int32)
     # Class probability of the top class of each ROI
     indices = tf.stack([tf.range(probs.shape[0]), class_ids], axis=1)
     class_scores = tf.gather_nd(probs, indices)
     # Class-specific bounding box deltas
-    deltas_specific = tf.gather_nd(deltas, indices)
+    # deltas_specific = tf.gather_nd(deltas, indices)
     # Apply bounding box deltas
     # Shape: [boxes, (y1, x1, y2, x2)] in normalized coordinates
     refined_rois = apply_box_deltas_graph(
-        rois, deltas_specific * config.BBOX_STD_DEV)
+        rois, deltas * config.BBOX_STD_DEV)
     # Convert coordiates to image domain
     # TODO: better to keep them normalized until later
     height, width = config.IMAGE_SHAPE[:2]
