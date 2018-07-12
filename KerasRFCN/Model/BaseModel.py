@@ -57,7 +57,12 @@ class BaseModel(object):
         exlude: list of layer names to excluce
         """
         import h5py
-        from keras.engine import saving
+        # Keras 2.2 use saving
+		try:
+            from keras.engine import saving
+        except ImportError:
+            # Keras before 2.2 used the 'topology' namespace.
+            from keras.engine import topology as saving
 
         if exclude:
             by_name = True
