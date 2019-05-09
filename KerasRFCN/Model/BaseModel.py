@@ -58,7 +58,7 @@ class BaseModel(object):
         """
         import h5py
         # Keras 2.2 use saving
-		try:
+        try:
             from keras.engine import saving
         except ImportError:
             # Keras before 2.2 used the 'topology' namespace.
